@@ -55,6 +55,10 @@ public abstract class MqttAutoFlowRegistrar implements MqttGateway {
         LOG.info("Mqtt client id middle value is {}", MIDDLE_ID);
     }
 
+    public Map<String, Map<String, MqttTopicConfig>> getServerTopicHandlerMap() {
+        return serverTopicHandlerMap;
+    }
+
     protected abstract List<MqttServerConfig> getServerConfigs();
 
     protected abstract MqttServerConfig getServerConfig(String serverId);
