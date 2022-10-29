@@ -29,6 +29,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * @Author fan'zi'ang
+ * @create 2022/10/29
+ */
 public abstract class MqttAutoFlowRegistrar implements MqttGateway {
 
     private static final Logger LOG = LoggerFactory.getLogger(MqttAutoFlowRegistrar.class);
@@ -47,12 +51,12 @@ public abstract class MqttAutoFlowRegistrar implements MqttGateway {
 
     private Map<String, IntegrationFlowContext.IntegrationFlowRegistration> outboundFlowMap = new HashMap<>();
 
-    private final String MIDDLE_ID = UUIDGenerator.generate();
+    private String middleId = UUIDGenerator.generate();
 
-    public MqttAutoFlowRegistrar(IntegrationFlowContext flowContext, MessageHandlers messageHandlers) {
+    protected MqttAutoFlowRegistrar(IntegrationFlowContext flowContext, MessageHandlers messageHandlers) {
         this.flowContext = flowContext;
         this.messageHandlers = messageHandlers;
-        LOG.info("Mqtt client id middle value is {}", MIDDLE_ID);
+        LOG.info("Mqtt client id middle value is {}", middleId);
     }
 
     public Map<String, Map<String, MqttTopicConfig>> getServerTopicHandlerMap() {
@@ -89,12 +93,12 @@ public abstract class MqttAutoFlowRegistrar implements MqttGateway {
             clientFactoryMap.put(server.getId(), clientFactory);
             String clientId = "";
             if (!topicHandlerMap.isEmpty()) {
-                clientId = server.getId() + "-" + MIDDLE_ID + "-consumer";
+                clientId = server.getId() + "-" + middleId + "-consumer";
                 MqttPahoMessageDrivenChannelAdapter inboundAdapter = createAdapter(server.getId(), clientId, clientFactory, qos);
                 inboundAdapterMap.put(server.getId(), inboundAdapter);
                 inboundFlowMap.put(server.getId(), registerInbound(server.getId(), clientId, inboundAdapter, new DirectChannel()));
             }
-            clientId = server.getId() + "-" + MIDDLE_ID + "-producer";
+            clientId = server.getId() + "-" + middleId + "-producer";
             IntegrationFlowContext.IntegrationFlowRegistration outboundFlowRegistration = registerOutbound(server, clientId, clientFactory);
             outboundFlowMap.put(server.getId(), outboundFlowRegistration);
         } else {
@@ -114,7 +118,7 @@ public abstract class MqttAutoFlowRegistrar implements MqttGateway {
                     adapter.start();
                 }
             } else if (!topicHandlerMap.isEmpty()) {
-                String clientId = server.getId() + "-" + MIDDLE_ID + "-consumer";
+                String clientId = server.getId() + "-" + middleId + "-consumer";
                 MqttPahoMessageDrivenChannelAdapter inboundAdapter = createAdapter(server.getId(), clientId, clientFactoryMap.get(server.getId()), qos);
                 inboundAdapterMap.put(server.getId(), inboundAdapter);
                 inboundFlowMap.put(server.getId(), registerInbound(server.getId(), clientId, inboundAdapter, new DirectChannel()));
@@ -201,12 +205,10 @@ public abstract class MqttAutoFlowRegistrar implements MqttGateway {
 
     public void beforeHandleMessage(String serverId, String clientId, String topic, byte[] bytes) {
         //do nothing
-        return;
     }
 
     public void afterHandleMessage(String serverId, String clientId, String topic, byte[] bytes) {
         //do nothing
-        return;
     }
 
     private void removeRegistration(IntegrationFlowContext.IntegrationFlowRegistration flowReg) {

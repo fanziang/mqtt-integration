@@ -1,11 +1,18 @@
 package com.potone.mqtt.util;
 
-
 import java.net.InetAddress;
 
+/**
+ * @Author fan'zi'ang
+ * @create 2022/10/29
+ */
 public class UUIDGenerator {
 
     private static final int IP;
+
+    private UUIDGenerator() {
+
+    }
 
     static {
         int ipadd;

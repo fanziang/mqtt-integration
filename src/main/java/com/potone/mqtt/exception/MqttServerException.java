@@ -1,5 +1,9 @@
 package com.potone.mqtt.exception;
 
+/**
+ * @Author fan'zi'ang
+ * @create 2022/10/29
+ */
 public class MqttServerException extends RuntimeException {
 
     public MqttServerException(String message) {

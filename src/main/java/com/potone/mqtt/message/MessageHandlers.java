@@ -7,6 +7,10 @@ import org.springframework.context.ApplicationContext;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @Author fan'zi'ang
+ * @create 2022/10/29
+ */
 public class MessageHandlers {
 
     private static final Logger LOG = LoggerFactory.getLogger(MessageHandlers.class);
