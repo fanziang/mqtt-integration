@@ -54,18 +54,4 @@
         </dependency>
     </dependencies>
 
-    <distributionManagement>
-        <repository>
-            <id>nexus</id>
-            <name>releases</name>
-            <url>http://192.168.85.52:8081/content/repositories/releases/</url>
-            <uniqueVersion>true</uniqueVersion>
-        </repository>
-        <snapshotRepository>
-            <id>nexus</id>
-            <name>snapshots</name>
-            <url>http://192.168.85.52:8081/content/repositories/snapshots/</url>
-        </snapshotRepository>
-    </distributionManagement>
-
 </project>

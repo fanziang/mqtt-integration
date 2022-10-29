@@ -3,24 +3,7 @@ package com.potone.mqtt.util;
 
 import java.net.InetAddress;
 
-/**
- * @Author 张代浩
- */
 public class UUIDGenerator {
-
-
-    /**
-     * 产生一个32位的UUID
-     *
-     * @return
-     */
-
-    public static String generate() {
-        return new StringBuilder(32).append(format(getIP())).append(
-                format(getJVM())).append(format(getHiTime())).append(
-                format(getLoTime())).append(format(getCount())).toString();
-
-    }
 
     private static final int IP;
 
@@ -32,6 +15,17 @@ public class UUIDGenerator {
             ipadd = 0;
         }
         IP = ipadd;
+    }
+
+    /**
+     * generate uuid
+     *
+     * @return
+     */
+    public static String generate() {
+        return new StringBuilder(32).append(format(getIP())).append(
+                format(getJVM())).append(format(getHiTime())).append(
+                format(getLoTime())).append(format(getCount())).toString();
     }
 
     private static short counter = (short) 0;

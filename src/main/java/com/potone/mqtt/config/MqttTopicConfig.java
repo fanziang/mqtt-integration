@@ -1,13 +1,17 @@
 package com.potone.mqtt.config;
 
-public interface MqttTopicConfig {
+import com.potone.mqtt.message.MqttMessageHandler;
 
-    String getServerId();
+public interface MqttTopicConfig {
 
     String getTopicName();
 
     Integer getQos();
 
+    /**
+     * @return
+     * @see MqttMessageHandler#value()
+     */
     String getMessageHandler();
 
 }
