@@ -83,3 +83,50 @@ public class RiskApplication {
     }
 }
 ```
+```
+public interface MqttService {
+
+    void sendToMqtt(String serverId, byte[] payload);
+
+    void sendToMqtt(String serverId, String topic, byte[] payload);
+
+    void sendToMqtt(String serverId, String topic, int qos, byte[] payload);
+
+    void refreshServer(String serverId);
+
+    void refreshAll();
+}
+```
+```
+@Service
+public class MqttServiceImpl implements MqttService {
+
+    @Autowired
+    private MqttRegistrar mqttRegistrar;
+
+    @Override
+    public void sendToMqtt(String serverId, byte[] payload) {
+        mqttRegistrar.sendToMqtt(serverId, payload);
+    }
+
+    @Override
+    public void sendToMqtt(String serverId, String topic, byte[] payload) {
+        mqttRegistrar.sendToMqtt(serverId, topic, payload);
+    }
+
+    @Override
+    public void sendToMqtt(String serverId, String topic, int qos, byte[] payload) {
+        mqttRegistrar.sendToMqtt(serverId, topic, qos, payload);
+    }
+
+    @Override
+    public void refreshServer(String serverId) {
+        mqttRegistrar.refreshServer(serverId);
+    }
+
+    @Override
+    public void refreshAll() {
+        mqttRegistrar.register();
+    }
+}
+```
