@@ -51,12 +51,12 @@ public abstract class MqttAutoFlowRegistrar implements MqttGateway {
 
     private Map<String, IntegrationFlowContext.IntegrationFlowRegistration> outboundFlowMap = new HashMap<>();
 
-    private String middleId = UUIDGenerator.generate();
+    private String taskId = UUIDGenerator.generate();
 
     protected MqttAutoFlowRegistrar(IntegrationFlowContext flowContext, MessageHandlers messageHandlers) {
         this.flowContext = flowContext;
         this.messageHandlers = messageHandlers;
-        LOG.info("Mqtt client id middle value is {}", middleId);
+        LOG.info("Mqtt clients building task id is {}", taskId);
     }
 
     public Map<String, Map<String, MqttTopicConfig>> getServerTopicHandlerMap() {
@@ -77,37 +77,32 @@ public abstract class MqttAutoFlowRegistrar implements MqttGateway {
         if (null == server) {
             return;
         }
-        List<MqttTopicConfig> listeners = getServerTopicConfigs(server.getId());
+        String serverId = server.getServerId();
+        List<MqttTopicConfig> listeners = getServerTopicConfigs(serverId);
         Map<String, MqttTopicConfig> topicHandlerMap = new HashMap<>();
         for (MqttTopicConfig listener : listeners) {
             topicHandlerMap.put(listener.getTopicName(), listener);
         }
-        serverTopicHandlerMap.put(server.getId(), topicHandlerMap);
+        serverTopicHandlerMap.put(serverId, topicHandlerMap);
         int[] qos = new int[listeners.size()];
         for (int i = 0; i < qos.length; i++) {
             MqttTopicConfig listener = listeners.get(i);
             qos[i] = null == listener.getQos() ? server.getDefaultQos() : listener.getQos();
         }
-        if (!clientFactoryMap.containsKey(server.getId())) {
+        if (!clientFactoryMap.containsKey(serverId)) {
             MqttPahoClientFactory clientFactory = createClientFactory(server);
-            clientFactoryMap.put(server.getId(), clientFactory);
-            String clientId = "";
+            clientFactoryMap.put(serverId, clientFactory);
             if (!topicHandlerMap.isEmpty()) {
-                clientId = server.getId() + "-" + middleId + "-consumer";
-                MqttPahoMessageDrivenChannelAdapter inboundAdapter = createAdapter(server.getId(), clientId, clientFactory, qos);
-                inboundAdapterMap.put(server.getId(), inboundAdapter);
-                inboundFlowMap.put(server.getId(), registerInbound(server.getId(), clientId, inboundAdapter, new DirectChannel()));
+                configInbound(serverId, getConsumerClientId(server), clientFactory, qos);
             }
-            clientId = server.getId() + "-" + middleId + "-producer";
-            IntegrationFlowContext.IntegrationFlowRegistration outboundFlowRegistration = registerOutbound(server, clientId, clientFactory);
-            outboundFlowMap.put(server.getId(), outboundFlowRegistration);
+            configOutbound(server, getProducerClientId(server), clientFactory);
         } else {
-            MqttPahoMessageDrivenChannelAdapter adapter = inboundAdapterMap.get(server.getId());
+            MqttPahoMessageDrivenChannelAdapter adapter = inboundAdapterMap.get(serverId);
             if (null != adapter) {
                 if (topicHandlerMap.isEmpty()) {
-                    inboundAdapterMap.remove(server.getId());
-                    removeRegistration(inboundFlowMap.get(server.getId()));
-                    inboundFlowMap.remove(server.getId());
+                    inboundAdapterMap.remove(serverId);
+                    removeRegistration(inboundFlowMap.get(serverId));
+                    inboundFlowMap.remove(serverId);
                 } else {
                     adapter.stop();
                     String[] topics = adapter.getTopic();
@@ -118,14 +113,49 @@ public abstract class MqttAutoFlowRegistrar implements MqttGateway {
                     adapter.start();
                 }
             } else if (!topicHandlerMap.isEmpty()) {
-                String clientId = server.getId() + "-" + middleId + "-consumer";
-                MqttPahoMessageDrivenChannelAdapter inboundAdapter = createAdapter(server.getId(), clientId, clientFactoryMap.get(server.getId()), qos);
-                inboundAdapterMap.put(server.getId(), inboundAdapter);
-                inboundFlowMap.put(server.getId(), registerInbound(server.getId(), clientId, inboundAdapter, new DirectChannel()));
+                configInbound(serverId, getConsumerClientId(server), clientFactoryMap.get(serverId), qos);
+            }
+            if (!outboundFlowMap.containsKey(serverId)) {
+                configOutbound(server, getProducerClientId(server), clientFactoryMap.get(serverId));
             }
         }
     }
 
+    private void configInbound(String serverId, String clientId, MqttPahoClientFactory clientFactory, int[] qos) {
+        try {
+            MqttPahoMessageDrivenChannelAdapter inboundAdapter = createAdapter(serverId, clientId, clientFactory, qos);
+            IntegrationFlowContext.IntegrationFlowRegistration inboundFlowRegistration = registerInbound(serverId, clientId, inboundAdapter, new DirectChannel());
+            inboundAdapterMap.put(serverId, inboundAdapter);
+            inboundFlowMap.put(serverId, inboundFlowRegistration);
+        } catch (Exception e) {
+            LOG.error("inboundFlowRegistration error", e);
+        }
+    }
+
+    private void configOutbound(MqttServerConfig server, String clientId, MqttPahoClientFactory clientFactory) {
+        try {
+            IntegrationFlowContext.IntegrationFlowRegistration outboundFlowRegistration = registerOutbound(server, clientId, clientFactory);
+            outboundFlowMap.put(server.getServerId(), outboundFlowRegistration);
+        } catch (Exception e) {
+            LOG.error("outboundFlowRegistration error", e);
+        }
+    }
+
+    private String getConsumerClientId(MqttServerConfig server) {
+        String clientId = server.getConsumerClientId();
+        if (StringUtils.isBlank(clientId)) {
+            clientId = server.getServerId() + "-" + taskId + "-consumer";
+        }
+        return clientId;
+    }
+
+    private String getProducerClientId(MqttServerConfig server) {
+        String clientId = server.getProducerClientID();
+        if (StringUtils.isBlank(clientId)) {
+            clientId = server.getServerId() + "-" + taskId + "-producer";
+        }
+        return clientId;
+    }
 
     public void clearAll() {
         LOG.info("MqttAutoFlowRegistrar clear is called");

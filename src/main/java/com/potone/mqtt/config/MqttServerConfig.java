@@ -6,7 +6,11 @@ package com.potone.mqtt.config;
  */
 public interface MqttServerConfig {
 
-    String getId();
+    String getServerId();
+
+    String getConsumerClientId();
+
+    String getProducerClientID();
 
     String getUrl();
 
