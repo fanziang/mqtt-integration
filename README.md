@@ -2,6 +2,11 @@
 <strong>use spring integration mqtt and support multi mqtt servers.</strong>
 ## Demo
 ```
+import com.potone.mqtt.message.MessageHandlers;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
 @Configuration
 public class MqttConfig {
 
@@ -12,6 +17,19 @@ public class MqttConfig {
 }
 ```
 ```
+import com.potone.modbus.util.ModbusUtils;
+import com.potone.mqtt.config.MqttServerConfig;
+import com.potone.mqtt.config.MqttTopicConfig;
+import com.potone.mqtt.integration.MqttAutoFlowRegistrar;
+import com.potone.mqtt.message.MessageHandlers;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.dsl.context.IntegrationFlowContext;
+import org.springframework.stereotype.Component;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+...
+
 @Component
 public class MqttRegistrar extends MqttAutoFlowRegistrar {
 
@@ -61,6 +79,13 @@ public class MqttRegistrar extends MqttAutoFlowRegistrar {
 }
 ```
 ```
+import com.potone.mqtt.message.ByteMessageHandler;
+import com.potone.mqtt.message.MqttMessageHandler;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+...
+
 @Slf4j
 @MqttMessageHandler("testMessageHandler")
 @Component
@@ -73,13 +98,21 @@ public class TestMessageHandler implements ByteMessageHandler {
 }
 ```
 ```
+import com.potone.mqtt.integration.MqttAutoFlowRegistrar;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
+...
+
 @SpringBootApplication
 public class RiskApplication {
 
     public static void main(String[] args) throws UnknownHostException {
         ConfigurableApplicationContext application = SpringApplication.run(RiskApplication.class, args);
-        MqttRegistrar mqttRegistrar = application.getBean(MqttRegistrar.class);
-        mqttRegistrar.register();
+        MqttAutoFlowRegistrar mqttRegistrar = application.getBean(MqttAutoFlowRegistrar.class);
+        if (null != mqttRegistrar) {
+            mqttRegistrar.register();
+        }
     }
 }
 ```
