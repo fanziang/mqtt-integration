@@ -8,6 +8,9 @@ import com.potone.mqtt.message.MqttMessageHandler;
  */
 public interface MqttTopicConfig {
 
+    /**
+     * support wildcards: + #
+     */
     String getTopicName();
 
     Integer getQos();

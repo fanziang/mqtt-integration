@@ -7,6 +7,7 @@ import com.potone.mqtt.exception.MqttServerException;
 import com.potone.mqtt.gateway.MqttGateway;
 import com.potone.mqtt.message.MessageHandlers;
 import com.potone.mqtt.util.UUIDGenerator;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.slf4j.Logger;
@@ -59,8 +60,12 @@ public abstract class MqttAutoFlowRegistrar implements MqttGateway {
         LOG.info("Mqtt clients building task id is {}", taskId);
     }
 
-    public Map<String, Map<String, MqttTopicConfig>> getServerTopicHandlerMap() {
-        return serverTopicHandlerMap;
+    protected MqttTopicConfig getTopicHandler(String serverId, String topicName) {
+        Map<String, MqttTopicConfig> map = serverTopicHandlerMap.get(serverId);
+        if (null != map) {
+            return map.get(topicName);
+        }
+        return null;
     }
 
     protected abstract List<MqttServerConfig> getServerConfigs();
@@ -219,7 +224,7 @@ public abstract class MqttAutoFlowRegistrar implements MqttGateway {
                     String topic = message.getHeaders().get("mqtt_receivedTopic").toString();
                     Object payLoad = message.getPayload();
                     byte[] bytes = (byte[]) payLoad;
-                    MqttTopicConfig topicListener = serverTopicHandlerMap.get(serverId).get(topic);
+                    MqttTopicConfig topicListener = getTopicListener(serverTopicHandlerMap.get(serverId), topic);
                     if (null != topicListener) {
                         beforeHandleMessage(serverId, clientId, topic, bytes);
                         if (LOG.isDebugEnabled()) {
@@ -231,6 +236,51 @@ public abstract class MqttAutoFlowRegistrar implements MqttGateway {
                 })
                 .get();
         return this.flowContext.registration(flow).id(clientId).useFlowIdAsPrefix().register();
+    }
+
+    private MqttTopicConfig getTopicListener(Map<String, MqttTopicConfig> topicConfigMap, String topic) {
+        if (MapUtils.isEmpty(topicConfigMap) || StringUtils.isBlank(topic)) {
+            return null;
+        }
+        MqttTopicConfig topicListener = topicConfigMap.get(topic);
+        if (null != topicListener) {
+            return topicListener;
+        }
+        for (Map.Entry<String, MqttTopicConfig> entry : topicConfigMap.entrySet()) {
+            String key = entry.getKey();
+            boolean match = matchTopic(key, topic);
+            if (match) {
+                topicListener = entry.getValue();
+                break;
+            }
+        }
+        //cache this topic listener
+        topicConfigMap.put(topic, topicListener);
+        return topicListener;
+    }
+
+    private boolean matchTopic(String topicFilter, String topicName) {
+        if (StringUtils.isEmpty(topicFilter) || StringUtils.isEmpty(topicName)) {
+            return false;
+        }
+        if (topicFilter.equals(topicName)) {
+            return true;
+        }
+        String[] s1 = topicFilter.split("/");
+        String[] s2 = topicName.split("/");
+        int len1 = s1.length;
+        int len2 = s2.length;
+        int len = len1 > len2 ? len1 : len2;
+        boolean match = true;
+        for (int i = 0; i < len; i++) {
+            if (i >= len1 || i >= len2 || (!"+".equals(s1[i]) && !s1[i].equals(s2[i]))) {
+                match = false;
+                break;
+            } else if ("#".equals(s1[i])) {
+                break;
+            }
+        }
+        return match;
     }
 
     public void beforeHandleMessage(String serverId, String clientId, String topic, byte[] bytes) {
