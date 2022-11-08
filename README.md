@@ -63,7 +63,7 @@ public class MqttRegistrar extends MqttAutoFlowRegistrar {
 
     @Override
     public void afterHandleMessage(String serverId, String clientId, String topic, byte[] bytes) {
-        MqttTopicListener topicListener = (MqttTopicListener) getServerTopicHandlerMap().get(serverId).get(topic);
+        MqttTopicListener topicListener = (MqttTopicListener) getTopicHandler(serverId, topic);
         if ("database".equalsIgnoreCase(topicListener.getLogType())) {
             MqttTopicLog topicLog = new MqttTopicLog();
             topicLog.setServerId(serverId);
