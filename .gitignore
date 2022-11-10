@@ -4,6 +4,10 @@
 *.jar
 *.war
 *.ear
+*.nar
+*.zip
+*.tar.gz
+*.rar
 
 # ignore Maven generated target folders
 target
