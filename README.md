@@ -2,28 +2,12 @@
 <strong>use spring integration mqtt and support multi mqtt servers.</strong>
 ## Demo
 ```
-import com.potone.mqtt.message.MessageHandlers;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-@Configuration
-public class MqttConfig {
-
-    @Bean
-    public MessageHandlers messageHandlers(ApplicationContext applicationContext) {
-        return new MessageHandlers(applicationContext);
-    }
-}
-```
-```
 import com.potone.modbus.util.ModbusUtils;
 import com.potone.mqtt.config.MqttServerConfig;
 import com.potone.mqtt.config.MqttTopicConfig;
 import com.potone.mqtt.integration.MqttAutoFlowRegistrar;
-import com.potone.mqtt.message.MessageHandlers;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.integration.dsl.context.IntegrationFlowContext;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Date;
@@ -42,8 +26,8 @@ public class MqttRegistrar extends MqttAutoFlowRegistrar {
     @Autowired
     private MqttTopicLogService mqttTopicLogService;
 
-    public MqttRegistrar(IntegrationFlowContext flowContext, MessageHandlers messageHandlers) {
-        super(flowContext, messageHandlers);
+    public MqttRegistrar(ApplicationContext applicationContext) {
+        super(applicationContext);
     }
 
     @Override

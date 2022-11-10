@@ -5,13 +5,15 @@ import com.potone.mqtt.config.MqttServerConfig;
 import com.potone.mqtt.config.MqttTopicConfig;
 import com.potone.mqtt.exception.MqttServerException;
 import com.potone.mqtt.gateway.MqttGateway;
-import com.potone.mqtt.message.MessageHandlers;
+import com.potone.mqtt.message.ByteMessageHandler;
+import com.potone.mqtt.message.MqttMessageHandler;
 import com.potone.mqtt.util.UUIDGenerator;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
@@ -38,9 +40,11 @@ public abstract class MqttAutoFlowRegistrar implements MqttGateway {
 
     private static final Logger LOG = LoggerFactory.getLogger(MqttAutoFlowRegistrar.class);
 
+    private ApplicationContext applicationContext;
+
     private IntegrationFlowContext flowContext;
 
-    private MessageHandlers messageHandlers;
+    private MessageHandlers messageHandlers = new MessageHandlers();
 
     private Map<String, Map<String, MqttTopicConfig>> serverTopicHandlerMap = new HashMap<>();
 
@@ -54,9 +58,9 @@ public abstract class MqttAutoFlowRegistrar implements MqttGateway {
 
     private String taskId = UUIDGenerator.generate();
 
-    protected MqttAutoFlowRegistrar(IntegrationFlowContext flowContext, MessageHandlers messageHandlers) {
-        this.flowContext = flowContext;
-        this.messageHandlers = messageHandlers;
+    protected MqttAutoFlowRegistrar(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+        flowContext = applicationContext.getBean(IntegrationFlowContext.class);
         LOG.info("Mqtt clients building task id is {}", taskId);
     }
 
@@ -179,10 +183,7 @@ public abstract class MqttAutoFlowRegistrar implements MqttGateway {
 
     public void register() {
         LOG.info("MqttAutoFlowRegistrar register start");
-        if (!messageHandlers.isInitialized()) {
-            LOG.info("MessageHandlers is not initialized and try to init now");
-            messageHandlers.init();
-        }
+        messageHandlers.init();
         List<MqttServerConfig> servers = getServerConfigs();
         for (MqttServerConfig server : servers) {
             refreshServer(server);
@@ -343,6 +344,43 @@ public abstract class MqttAutoFlowRegistrar implements MqttGateway {
     @Override
     public void sendToMqtt(String serverId, String topic, int qos, byte[] payload) {
         send(serverId, topic, qos, payload);
+    }
+
+    private class MessageHandlers {
+
+        private Map<String, ByteMessageHandler> handlerMap = new HashMap<>();
+
+        private boolean initialized = false;
+
+        public boolean isInitialized() {
+            return initialized;
+        }
+
+        public void init() {
+            if (initialized) return;
+            LOG.info("MessageHandlers is initializing");
+            handlerMap.clear();
+            Map<String, ByteMessageHandler> map = applicationContext.getBeansOfType(ByteMessageHandler.class);
+            for (ByteMessageHandler messageHandler : map.values()) {
+                MqttMessageHandler handlerAnnotation = messageHandler.getClass().getDeclaredAnnotation(MqttMessageHandler.class);
+                if (null != handlerAnnotation) {
+                    LOG.info("MessageHandlers detect one ByteMessageHandler: {}", handlerAnnotation.value());
+                    handlerMap.put(handlerAnnotation.value(), messageHandler);
+                }
+            }
+            initialized = true;
+            LOG.info("MessageHandlers initialization is done");
+        }
+
+        public void handleMessage(String handlerName, String topic, byte[] bytes) {
+            ByteMessageHandler handler = handlerMap.get(handlerName);
+            if (null != handler) {
+                handler.handle(topic, bytes);
+            } else {
+                LOG.warn("handlerName not exists: {}", handlerName);
+            }
+        }
+
     }
 
 }
