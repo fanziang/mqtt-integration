@@ -10,7 +10,7 @@ public interface MqttServerConfig {
 
     String getConsumerClientId();
 
-    String getProducerClientID();
+    String getProducerClientId();
 
     String getUrl();
 

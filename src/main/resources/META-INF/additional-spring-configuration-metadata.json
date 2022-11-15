@@ -1,0 +1,12 @@
+{
+  "properties": [
+    {
+      "name": "spring.integration.mqtt.servers",
+      "type": "java.util.Map<java.lang.String,com.potone.mqtt.autoconfigure.MqttServerProperty>",
+      "description": "mqtt servers",
+      "sourceType": "com.potone.mqtt.autoconfigure.MqttProperties"
+    }
+  ],
+  "hints": [
+  ]
+}

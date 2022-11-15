@@ -1,6 +1,7 @@
 package com.potone.mqtt.integration;
 
 import ch.qos.logback.core.encoder.ByteArrayUtil;
+import com.potone.mqtt.config.MqttConfigAdapter;
 import com.potone.mqtt.config.MqttServerConfig;
 import com.potone.mqtt.config.MqttTopicConfig;
 import com.potone.mqtt.exception.MqttServerException;
@@ -36,13 +37,15 @@ import java.util.stream.Collectors;
  * @Author fan'zi'ang
  * @create 2022/10/29
  */
-public abstract class MqttAutoFlowRegistrar implements MqttGateway {
+public class MqttAutoFlowRegistrar implements MqttGateway {
 
     private static final Logger LOG = LoggerFactory.getLogger(MqttAutoFlowRegistrar.class);
 
     private ApplicationContext applicationContext;
 
     private IntegrationFlowContext flowContext;
+
+    private MqttConfigAdapter mqttConfigAdapter;
 
     private MessageHandlers messageHandlers = new MessageHandlers();
 
@@ -58,9 +61,10 @@ public abstract class MqttAutoFlowRegistrar implements MqttGateway {
 
     private String taskId = UUIDGenerator.generate();
 
-    protected MqttAutoFlowRegistrar(ApplicationContext applicationContext) {
+    public MqttAutoFlowRegistrar(ApplicationContext applicationContext, MqttConfigAdapter mqttConfigAdapter) {
         this.applicationContext = applicationContext;
-        flowContext = applicationContext.getBean(IntegrationFlowContext.class);
+        this.flowContext = applicationContext.getBean(IntegrationFlowContext.class);
+        this.mqttConfigAdapter = mqttConfigAdapter;
         LOG.info("Mqtt clients building task id is {}", taskId);
     }
 
@@ -72,14 +76,9 @@ public abstract class MqttAutoFlowRegistrar implements MqttGateway {
         return null;
     }
 
-    protected abstract List<MqttServerConfig> getServerConfigs();
-
-    protected abstract MqttServerConfig getServerConfig(String serverId);
-
-    protected abstract List<MqttTopicConfig> getServerTopicConfigs(String serverId);
 
     public void refreshServer(String serverId) {
-        refreshServer(getServerConfig(serverId));
+        refreshServer(mqttConfigAdapter.getServerConfig(serverId));
     }
 
     public void refreshServer(MqttServerConfig server) {
@@ -87,10 +86,12 @@ public abstract class MqttAutoFlowRegistrar implements MqttGateway {
             return;
         }
         String serverId = server.getServerId();
-        List<MqttTopicConfig> listeners = getServerTopicConfigs(serverId);
+        List<MqttTopicConfig> listeners = mqttConfigAdapter.getServerTopicConfigs(serverId);
         Map<String, MqttTopicConfig> topicHandlerMap = new HashMap<>();
-        for (MqttTopicConfig listener : listeners) {
-            topicHandlerMap.put(listener.getTopicName(), listener);
+        if (null != listeners) {
+            for (MqttTopicConfig listener : listeners) {
+                topicHandlerMap.put(listener.getTopicName(), listener);
+            }
         }
         serverTopicHandlerMap.put(serverId, topicHandlerMap);
         int[] qos = new int[listeners.size()];
@@ -159,7 +160,7 @@ public abstract class MqttAutoFlowRegistrar implements MqttGateway {
     }
 
     private String getProducerClientId(MqttServerConfig server) {
-        String clientId = server.getProducerClientID();
+        String clientId = server.getProducerClientId();
         if (StringUtils.isBlank(clientId)) {
             clientId = server.getServerId() + "-" + taskId + "-producer";
         }
@@ -184,7 +185,7 @@ public abstract class MqttAutoFlowRegistrar implements MqttGateway {
     public void register() {
         LOG.info("MqttAutoFlowRegistrar register start");
         messageHandlers.init();
-        List<MqttServerConfig> servers = getServerConfigs();
+        List<MqttServerConfig> servers = mqttConfigAdapter.getServerConfigs();
         for (MqttServerConfig server : servers) {
             refreshServer(server);
         }
