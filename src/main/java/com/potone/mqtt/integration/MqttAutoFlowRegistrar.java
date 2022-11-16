@@ -5,7 +5,7 @@ import com.potone.mqtt.config.MqttConfigAdapter;
 import com.potone.mqtt.config.MqttServerConfig;
 import com.potone.mqtt.config.MqttTopicConfig;
 import com.potone.mqtt.exception.MqttServerException;
-import com.potone.mqtt.gateway.MqttGateway;
+import com.potone.mqtt.gateway.MqttManager;
 import com.potone.mqtt.message.ByteMessageHandler;
 import com.potone.mqtt.message.MqttMessageHandler;
 import com.potone.mqtt.util.UUIDGenerator;
@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  * @Author fan'zi'ang
  * @create 2022/10/29
  */
-public class MqttAutoFlowRegistrar implements MqttGateway {
+public class MqttAutoFlowRegistrar implements MqttManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(MqttAutoFlowRegistrar.class);
 
@@ -76,7 +76,12 @@ public class MqttAutoFlowRegistrar implements MqttGateway {
         return null;
     }
 
+    @Override
+    public void refreshAll() {
+        register();
+    }
 
+    @Override
     public void refreshServer(String serverId) {
         refreshServer(mqttConfigAdapter.getServerConfig(serverId));
     }

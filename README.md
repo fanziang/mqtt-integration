@@ -1,8 +1,8 @@
 # mqtt-integration
 <strong>use spring integration mqtt and support multi mqtt servers.</strong>
 ## Demo
-1. If MQTT configuration is predictable, configure properties, otherwise you can implement MqttConfigAdapter.
-    ```
+1. If MQTT configuration is predictable, configure properties. 
+   ```
     spring:
       integration:
         mqtt:
@@ -19,6 +19,7 @@
                   qos: 1
                   messageHandler: messageHandler2
     ```
+2.  If MQTT configuration is not predictable, you can implement MqttConfigAdapter.
     ```
     import com.potone.mqtt.config.MqttConfigAdapter;
     import com.potone.mqtt.config.MqttServerConfig;
@@ -54,7 +55,7 @@
         }
     }
     ```
-2. Implement ByteMessageHandler.
+3. Implement ByteMessageHandler.
     ```
     import com.potone.mqtt.message.ByteMessageHandler;
     import com.potone.mqtt.message.MqttMessageHandler;
@@ -72,76 +73,23 @@
         }
     }
     ```
-3. Call MqttAutoFlowRegistrar.register().
+4. send message.
     ```
-    import com.potone.mqtt.integration.MqttAutoFlowRegistrar;
-    import org.springframework.boot.SpringApplication;
-    import org.springframework.boot.autoconfigure.SpringBootApplication;
-    import org.springframework.context.ConfigurableApplicationContext;
-    ...
-    
-    @SpringBootApplication
-    public class RiskApplication {
-    
-        public static void main(String[] args) throws UnknownHostException {
-            ConfigurableApplicationContext application = SpringApplication.run(RiskApplication.class, args);
-            MqttAutoFlowRegistrar mqttRegistrar = application.getBean(MqttAutoFlowRegistrar.class);
-            if (null != mqttRegistrar) {
-                mqttRegistrar.register();
-            }
-        }
-    }
-    ```
-4. If necessary, package it as a Service.
-    ```
-    public interface MqttService {
-    
-        void sendToMqtt(String serverId, byte[] payload);
-    
-        void sendToMqtt(String serverId, String topic, byte[] payload);
-    
-        void sendToMqtt(String serverId, String topic, int qos, byte[] payload);
-    
-        void refreshServer(String serverId);
-    
-        void refreshAll();
-    }
-    ```
-    ```
-   import com.potone.mqtt.integration.MqttAutoFlowRegistrar;
+   import com.potone.mqtt.gateway.MqttManager;
    import org.springframework.beans.factory.annotation.Autowired;
-   import org.springframework.stereotype.Service;
-   ...
+   import org.springframework.web.bind.annotation.*;
    
-    @Service
-    public class MqttServiceImpl implements MqttService {
+    @RestController
+    @RequestMapping("/mqtt")
+    public class MqttController {
     
         @Autowired
-        private MqttAutoFlowRegistrar mqttRegistrar;
+        private MqttManager mqttManager;
     
-        @Override
-        public void sendToMqtt(String serverId, byte[] payload) {
-            mqttRegistrar.sendToMqtt(serverId, payload);
+        @PostMapping("/sendString")
+        public String sendString(@RequestParam String serverId, @RequestParam String topic, @RequestBody String message) {
+            mqttManager.sendToMqtt(serverId, topic, message.getBytes());
+            return "send message : " + message;
         }
-    
-        @Override
-        public void sendToMqtt(String serverId, String topic, byte[] payload) {
-            mqttRegistrar.sendToMqtt(serverId, topic, payload);
-        }
-    
-        @Override
-        public void sendToMqtt(String serverId, String topic, int qos, byte[] payload) {
-            mqttRegistrar.sendToMqtt(serverId, topic, qos, payload);
-        }
-    
-        @Override
-        public void refreshServer(String serverId) {
-            mqttRegistrar.refreshServer(serverId);
-        }
-    
-        @Override
-        public void refreshAll() {
-            mqttRegistrar.register();
-        }
-    }
+   }
     ```

@@ -2,6 +2,7 @@ package com.potone.mqtt.autoconfigure;
 
 import com.potone.mqtt.config.DefaultMqttConfigManager;
 import com.potone.mqtt.config.MqttConfigAdapter;
+import com.potone.mqtt.gateway.MqttManager;
 import com.potone.mqtt.integration.MqttAutoFlowRegistrar;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -18,8 +19,13 @@ public class MqttAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public MqttAutoFlowRegistrar mqttAutoFlowRegistrar(ApplicationContext applicationContext, MqttConfigAdapter mqttConfigAdapter) {
+    public MqttManager mqttAutoFlowRegistrar(ApplicationContext applicationContext, MqttConfigAdapter mqttConfigAdapter) {
         return new MqttAutoFlowRegistrar(applicationContext, mqttConfigAdapter);
+    }
+
+    @Bean
+    public MqttCommandLineRunner mqttCommandLineRunner(MqttManager mqttManager) {
+        return new MqttCommandLineRunner(mqttManager);
     }
 
     @Configuration
