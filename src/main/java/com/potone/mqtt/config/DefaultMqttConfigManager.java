@@ -37,6 +37,11 @@ public class DefaultMqttConfigManager implements MqttConfigAdapter {
                 serverConfig.setCleanSession(serverProperty.isCleanSession());
                 serverConfig.setDefaultQos(serverProperty.getDefaultQos());
                 serverConfig.setDefaultTopic(serverProperty.getDefaultTopic());
+                serverConfig.setConnectionTimeout(serverProperty.getConnectionTimeout());
+                serverConfig.setAutomaticReconnect(serverProperty.getAutomaticReconnect());
+                serverConfig.setKeepAliveInterval(serverProperty.getKeepAliveInterval());
+                serverConfig.setMaxInflight(serverProperty.getMaxInflight());
+                serverConfig.setMqttVersion(serverProperty.getMqttVersion());
                 List<MqttTopicConfig> list = new ArrayList<>();
                 if (null != serverProperty.getTopics()) {
                     for (MqttTopicProperty topicProperty : serverProperty.getTopics()) {

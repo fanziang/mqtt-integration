@@ -78,6 +78,7 @@ public class MqttAutoFlowRegistrar implements MqttManager {
 
     @Override
     public void refreshAll() {
+        clearAll();
         register();
     }
 
@@ -208,6 +209,21 @@ public class MqttAutoFlowRegistrar implements MqttManager {
             options.setPassword(server.getPassword().toCharArray());
         }
         options.setCleanSession(server.isCleanSession());
+        if (null != server.getAutomaticReconnect()) {
+            options.setAutomaticReconnect(server.getAutomaticReconnect());
+        }
+        if (null != server.getConnectionTimeout()) {
+            options.setConnectionTimeout(server.getConnectionTimeout());
+        }
+        if (null != server.getKeepAliveInterval()) {
+            options.setKeepAliveInterval(server.getKeepAliveInterval());
+        }
+        if (null != server.getMaxInflight()) {
+            options.setMaxInflight(server.getMaxInflight());
+        }
+        if (null != server.getMqttVersion()) {
+            options.setMqttVersion(server.getMqttVersion());
+        }
         factory.setConnectionOptions(options);
         return factory;
     }

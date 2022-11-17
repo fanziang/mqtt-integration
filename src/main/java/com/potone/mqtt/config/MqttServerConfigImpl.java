@@ -24,6 +24,16 @@ public class MqttServerConfigImpl implements MqttServerConfig {
 
     private String defaultTopic;
 
+    private Integer connectionTimeout;
+
+    private Boolean automaticReconnect;
+
+    private Integer keepAliveInterval;
+
+    private Integer maxInflight;
+
+    private Integer mqttVersion;
+
     @Override
     public String getServerId() {
         return serverId;
@@ -103,5 +113,50 @@ public class MqttServerConfigImpl implements MqttServerConfig {
 
     public void setDefaultTopic(String defaultTopic) {
         this.defaultTopic = defaultTopic;
+    }
+
+    @Override
+    public Integer getConnectionTimeout() {
+        return connectionTimeout;
+    }
+
+    public void setConnectionTimeout(Integer connectionTimeout) {
+        this.connectionTimeout = connectionTimeout;
+    }
+
+    @Override
+    public Boolean getAutomaticReconnect() {
+        return automaticReconnect;
+    }
+
+    public void setAutomaticReconnect(Boolean automaticReconnect) {
+        this.automaticReconnect = automaticReconnect;
+    }
+
+    @Override
+    public Integer getKeepAliveInterval() {
+        return keepAliveInterval;
+    }
+
+    public void setKeepAliveInterval(Integer keepAliveInterval) {
+        this.keepAliveInterval = keepAliveInterval;
+    }
+
+    @Override
+    public Integer getMaxInflight() {
+        return maxInflight;
+    }
+
+    public void setMaxInflight(Integer maxInflight) {
+        this.maxInflight = maxInflight;
+    }
+
+    @Override
+    public Integer getMqttVersion() {
+        return mqttVersion;
+    }
+
+    public void setMqttVersion(Integer mqttVersion) {
+        this.mqttVersion = mqttVersion;
     }
 }

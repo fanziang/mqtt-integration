@@ -9,14 +9,24 @@ import com.potone.mqtt.message.MqttMessageHandler;
 public interface MqttTopicConfig {
 
     /**
+     * Returns the name of topic.
      * support wildcards: + #
+     *
+     * @return topic name
      */
     String getTopicName();
 
+    /**
+     * Returns qos value.
+     *
+     * @return qos value
+     */
     Integer getQos();
 
     /**
-     * @return
+     * Returns message handler name.
+     *
+     * @return message handler name
      * @see MqttMessageHandler#value()
      */
     String getMessageHandler();

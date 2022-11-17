@@ -8,9 +8,26 @@ import java.util.List;
  */
 public interface MqttConfigAdapter {
 
+    /**
+     * get configs of all servers
+     *
+     * @return server config list
+     */
     List<MqttServerConfig> getServerConfigs();
 
+    /**
+     * get config by server id
+     *
+     * @param serverId
+     * @return server config
+     */
     MqttServerConfig getServerConfig(String serverId);
 
+    /**
+     * get all topic configs of server by server id
+     *
+     * @param serverId
+     * @return topic config list
+     */
     List<MqttTopicConfig> getServerTopicConfigs(String serverId);
 }
