@@ -28,6 +28,7 @@ import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.messaging.MessageChannel;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -95,9 +96,12 @@ public class MqttAutoFlowRegistrar implements MqttManager {
         List<MqttTopicConfig> listeners = mqttConfigAdapter.getServerTopicConfigs(serverId);
         Map<String, MqttTopicConfig> topicHandlerMap = new HashMap<>();
         if (null != listeners) {
+            listeners.removeAll(Collections.singleton(null));
             for (MqttTopicConfig listener : listeners) {
                 topicHandlerMap.put(listener.getTopicName(), listener);
             }
+        } else {
+            listeners = Collections.emptyList();
         }
         serverTopicHandlerMap.put(serverId, topicHandlerMap);
         int[] qos = new int[listeners.size()];

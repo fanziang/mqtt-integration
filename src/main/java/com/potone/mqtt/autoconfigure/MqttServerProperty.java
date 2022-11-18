@@ -243,7 +243,6 @@ public class MqttServerProperty {
         this.completionTimeout = completionTimeout;
     }
 
-
     public Integer getRecoveryInterval() {
         return recoveryInterval;
     }
