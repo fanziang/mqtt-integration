@@ -105,4 +105,25 @@ public interface MqttServerConfig {
      * @return the MQTT version.
      */
     Integer getMqttVersion();
+
+    /**
+     * Returns whether you want to send messages asynchronously.
+     *
+     * @return true or false
+     */
+    boolean isAsync();
+
+    /**
+     * Returns the maximum time to wait for an action to complete.
+     *
+     * @return the maximum time in milliseconds
+     */
+    Long getCompletionTimeout();
+
+    /**
+     * Returns the time (ms) to wait between reconnection attempts.
+     *
+     * @return the recovery interval in milliseconds
+     */
+    Integer getRecoveryInterval();
 }

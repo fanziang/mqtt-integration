@@ -1,6 +1,7 @@
 package com.potone.mqtt.autoconfigure;
 
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
+import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannelAdapter;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -84,6 +85,28 @@ public class MqttServerProperty {
      * the MQTT version
      */
     private Integer mqttVersion;
+
+    /**
+     * Set to true if you don't want to block when sending messages. Default false.
+     * When true, message sent/delivered events will be published for reception
+     * by a suitably configured 'ApplicationListener' or an event
+     * inbound-channel-adapter.
+     */
+    private boolean async = true;
+
+    /**
+     * The maximum time to wait for an action to complete.
+     * Default {@value MqttPahoMessageDrivenChannelAdapter#DEFAULT_COMPLETION_TIMEOUT} milliseconds.
+     * When it is null, default value is used.
+     */
+    private Long completionTimeout;
+
+    /**
+     * The time (ms) to wait between reconnection attempts.
+     * Default 10000.
+     * When it is null, default value is used.
+     */
+    private Integer recoveryInterval;
 
     /**
      * topic list in this server
@@ -202,5 +225,30 @@ public class MqttServerProperty {
 
     public void setMqttVersion(Integer mqttVersion) {
         this.mqttVersion = mqttVersion;
+    }
+
+    public boolean isAsync() {
+        return async;
+    }
+
+    public void setAsync(boolean async) {
+        this.async = async;
+    }
+
+    public Long getCompletionTimeout() {
+        return completionTimeout;
+    }
+
+    public void setCompletionTimeout(Long completionTimeout) {
+        this.completionTimeout = completionTimeout;
+    }
+
+
+    public Integer getRecoveryInterval() {
+        return recoveryInterval;
+    }
+
+    public void setRecoveryInterval(Integer recoveryInterval) {
+        this.recoveryInterval = recoveryInterval;
     }
 }

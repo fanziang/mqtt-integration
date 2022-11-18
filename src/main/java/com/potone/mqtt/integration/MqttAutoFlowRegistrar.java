@@ -109,7 +109,7 @@ public class MqttAutoFlowRegistrar implements MqttManager {
             MqttPahoClientFactory clientFactory = createClientFactory(server);
             clientFactoryMap.put(serverId, clientFactory);
             if (!topicHandlerMap.isEmpty()) {
-                configInbound(serverId, getConsumerClientId(server), clientFactory, qos);
+                configInbound(server, getConsumerClientId(server), clientFactory, qos);
             }
             configOutbound(server, getProducerClientId(server), clientFactory);
         } else {
@@ -129,7 +129,7 @@ public class MqttAutoFlowRegistrar implements MqttManager {
                     adapter.start();
                 }
             } else if (!topicHandlerMap.isEmpty()) {
-                configInbound(serverId, getConsumerClientId(server), clientFactoryMap.get(serverId), qos);
+                configInbound(server, getConsumerClientId(server), clientFactoryMap.get(serverId), qos);
             }
             if (!outboundFlowMap.containsKey(serverId)) {
                 configOutbound(server, getProducerClientId(server), clientFactoryMap.get(serverId));
@@ -137,9 +137,10 @@ public class MqttAutoFlowRegistrar implements MqttManager {
         }
     }
 
-    private void configInbound(String serverId, String clientId, MqttPahoClientFactory clientFactory, int[] qos) {
+    private void configInbound(MqttServerConfig server, String clientId, MqttPahoClientFactory clientFactory, int[] qos) {
         try {
-            MqttPahoMessageDrivenChannelAdapter inboundAdapter = createAdapter(serverId, clientId, clientFactory, qos);
+            String serverId = server.getServerId();
+            MqttPahoMessageDrivenChannelAdapter inboundAdapter = createAdapter(server, clientId, clientFactory, qos);
             IntegrationFlowContext.IntegrationFlowRegistration inboundFlowRegistration = registerInbound(serverId, clientId, inboundAdapter, new DirectChannel());
             inboundAdapterMap.put(serverId, inboundAdapter);
             inboundFlowMap.put(serverId, inboundFlowRegistration);
@@ -190,7 +191,7 @@ public class MqttAutoFlowRegistrar implements MqttManager {
 
     public void register() {
         LOG.info("MqttAutoFlowRegistrar register start");
-        messageHandlers.init();
+        messageHandlers.init(false);
         List<MqttServerConfig> servers = mqttConfigAdapter.getServerConfigs();
         for (MqttServerConfig server : servers) {
             refreshServer(server);
@@ -228,10 +229,15 @@ public class MqttAutoFlowRegistrar implements MqttManager {
         return factory;
     }
 
-    private MqttPahoMessageDrivenChannelAdapter createAdapter(String serverId, String clientId, MqttPahoClientFactory clientFactory, int... qos) {
+    private MqttPahoMessageDrivenChannelAdapter createAdapter(MqttServerConfig server, String clientId, MqttPahoClientFactory clientFactory, int... qos) {
         MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter(clientId, clientFactory,
-                serverTopicHandlerMap.get(serverId).keySet().toArray(new String[0]));
-        adapter.setCompletionTimeout(5000);
+                serverTopicHandlerMap.get(server.getServerId()).keySet().toArray(new String[0]));
+        if (null != server.getCompletionTimeout()) {
+            adapter.setCompletionTimeout(server.getCompletionTimeout());
+        }
+        if (null != server.getRecoveryInterval()) {
+            adapter.setRecoveryInterval(server.getRecoveryInterval());
+        }
         DefaultPahoMessageConverter converter = new DefaultPahoMessageConverter();
         converter.setPayloadAsBytes(true);
         adapter.setConverter(converter);
@@ -322,7 +328,7 @@ public class MqttAutoFlowRegistrar implements MqttManager {
         IntegrationFlow flow = f -> {
             MqttPahoMessageHandler messageHandler =
                     new MqttPahoMessageHandler(clientId, clientFactory);
-            messageHandler.setAsync(true);
+            messageHandler.setAsync(server.isAsync());
             messageHandler.setDefaultTopic(server.getDefaultTopic());
             messageHandler.setDefaultQos(server.getDefaultQos());
             f.handle(messageHandler);
@@ -374,12 +380,8 @@ public class MqttAutoFlowRegistrar implements MqttManager {
 
         private boolean initialized = false;
 
-        public boolean isInitialized() {
-            return initialized;
-        }
-
-        public void init() {
-            if (initialized) return;
+        public void init(boolean refresh) {
+            if (initialized && !refresh) return;
             LOG.info("MessageHandlers is initializing");
             handlerMap.clear();
             Map<String, ByteMessageHandler> map = applicationContext.getBeansOfType(ByteMessageHandler.class);

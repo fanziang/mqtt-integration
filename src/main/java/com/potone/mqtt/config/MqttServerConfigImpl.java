@@ -34,6 +34,12 @@ public class MqttServerConfigImpl implements MqttServerConfig {
 
     private Integer mqttVersion;
 
+    private boolean async = true;
+
+    private Long completionTimeout;
+
+    private Integer recoveryInterval;
+
     @Override
     public String getServerId() {
         return serverId;
@@ -158,5 +164,32 @@ public class MqttServerConfigImpl implements MqttServerConfig {
 
     public void setMqttVersion(Integer mqttVersion) {
         this.mqttVersion = mqttVersion;
+    }
+
+    @Override
+    public boolean isAsync() {
+        return async;
+    }
+
+    public void setAsync(boolean async) {
+        this.async = async;
+    }
+
+    @Override
+    public Long getCompletionTimeout() {
+        return completionTimeout;
+    }
+
+    public void setCompletionTimeout(Long completionTimeout) {
+        this.completionTimeout = completionTimeout;
+    }
+
+    @Override
+    public Integer getRecoveryInterval() {
+        return recoveryInterval;
+    }
+
+    public void setRecoveryInterval(Integer recoveryInterval) {
+        this.recoveryInterval = recoveryInterval;
     }
 }

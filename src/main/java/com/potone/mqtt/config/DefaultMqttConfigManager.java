@@ -42,6 +42,9 @@ public class DefaultMqttConfigManager implements MqttConfigAdapter {
                 serverConfig.setKeepAliveInterval(serverProperty.getKeepAliveInterval());
                 serverConfig.setMaxInflight(serverProperty.getMaxInflight());
                 serverConfig.setMqttVersion(serverProperty.getMqttVersion());
+                serverConfig.setAsync(serverProperty.isAsync());
+                serverConfig.setCompletionTimeout(serverProperty.getCompletionTimeout());
+                serverConfig.setRecoveryInterval(serverProperty.getRecoveryInterval());
                 List<MqttTopicConfig> list = new ArrayList<>();
                 if (null != serverProperty.getTopics()) {
                     for (MqttTopicProperty topicProperty : serverProperty.getTopics()) {
