@@ -25,6 +25,7 @@
     import com.potone.mqtt.config.MqttServerConfig;
     import com.potone.mqtt.config.MqttTopicConfig;
     import org.springframework.beans.factory.annotation.Autowired;
+    import org.springframework.beans.factory.annotation.Value;
     import org.springframework.stereotype.Component;
     import java.util.ArrayList;
     import java.util.List;
@@ -33,11 +34,19 @@
     @Component
     public class MqttServerManager implements MqttConfigAdapter {
     
+        @Value("${spring.integration.mqtt.enabled:true}")
+        private boolean enabled;
+    
         @Autowired
         private MqttServerService mqttServerService;
     
         @Autowired
         private MqttTopicListenerService mqttTopicListenerService;
+    
+        @Override
+        public boolean isEnabled() {
+            return enabled;
+        }
     
         @Override
         public List<MqttServerConfig> getServerConfigs() {
