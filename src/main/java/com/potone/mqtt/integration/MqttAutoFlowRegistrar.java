@@ -194,8 +194,12 @@ public class MqttAutoFlowRegistrar implements MqttManager {
     }
 
     public void register() {
+        if (!mqttConfigAdapter.isEnabled()) {
+            LOG.info("MQTT is not enabled");
+            return;
+        }
         LOG.info("MqttAutoFlowRegistrar register start");
-        messageHandlers.init(false);
+        messageHandlers.init(true);
         List<MqttServerConfig> servers = mqttConfigAdapter.getServerConfigs();
         for (MqttServerConfig server : servers) {
             refreshServer(server);

@@ -5,6 +5,7 @@ import com.potone.mqtt.config.MqttConfigAdapter;
 import com.potone.mqtt.gateway.MqttManager;
 import com.potone.mqtt.integration.MqttAutoFlowRegistrar;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -15,6 +16,7 @@ import org.springframework.context.annotation.Configuration;
  * @create 2022/11/13
  */
 @Configuration
+@ConditionalOnProperty(prefix = "spring.integration.mqtt", name = "enabled", matchIfMissing = true)
 public class MqttAutoConfiguration {
 
     @Bean

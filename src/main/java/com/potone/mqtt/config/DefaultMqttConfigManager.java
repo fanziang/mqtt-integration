@@ -16,6 +16,8 @@ import java.util.Map;
  */
 public class DefaultMqttConfigManager implements MqttConfigAdapter {
 
+    private boolean enabled;
+
     private List<MqttServerConfig> serverConfigs = new ArrayList<>();
 
     private Map<String, MqttServerConfig> serversMap = new HashMap<>();
@@ -23,7 +25,12 @@ public class DefaultMqttConfigManager implements MqttConfigAdapter {
     private Map<String, List<MqttTopicConfig>> topicsMap = new HashMap<>();
 
     public DefaultMqttConfigManager(MqttProperties mqttProperties) {
-        if (null != mqttProperties && MapUtils.isNotEmpty(mqttProperties.getServers())) {
+        if (null == mqttProperties) {
+            enabled = false;
+            return;
+        }
+        enabled = mqttProperties.isEnabled();
+        if (MapUtils.isNotEmpty(mqttProperties.getServers())) {
             for (Map.Entry<String, MqttServerProperty> entry : mqttProperties.getServers().entrySet()) {
                 MqttServerProperty serverProperty = entry.getValue();
                 String key = entry.getKey();
@@ -60,6 +67,11 @@ public class DefaultMqttConfigManager implements MqttConfigAdapter {
                 serversMap.put(key, serverConfig);
             }
         }
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return enabled;
     }
 
     @Override

@@ -9,6 +9,13 @@ import java.util.List;
 public interface MqttConfigAdapter {
 
     /**
+     * Returns whether mqtt is enabled.
+     *
+     * @return true or false
+     */
+    boolean isEnabled();
+
+    /**
      * get configs of all servers
      *
      * @return server config list

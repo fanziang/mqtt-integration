@@ -17,11 +17,24 @@ import java.util.Map;
 public class MqttProperties {
 
     /**
+     * Enable mqtt or not, default value is true.
+     */
+    private boolean enabled = true;
+
+    /**
      * mqtt servers
      */
     @Valid
     @NestedConfigurationProperty
     private Map<String, MqttServerProperty> servers = new LinkedHashMap<>();
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
 
     public Map<String, MqttServerProperty> getServers() {
         return servers;
